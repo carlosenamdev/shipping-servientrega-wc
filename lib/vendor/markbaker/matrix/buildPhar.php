@@ -12,7 +12,7 @@ if (ini_get('phar.readonly')) {
 $pharName = 'Matrix.phar';
 
 // target folder
-$sourceDir = __DIR__ . DIRECTORY_SEPARATOR . 'classes' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR;
+$sourceDir = __DIR__ . DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR;
 
 // default meta information
 $metaData = array(

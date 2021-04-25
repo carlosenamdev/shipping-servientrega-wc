@@ -87,29 +87,28 @@ class Shipping_Servientrega_WC_Plugin
 
     protected function _run()
     {
-        if (!class_exists('\PhpOffice\PhpSpreadsheet\Reader\Xls'))
-            require_once ($this->lib_path . 'vendor/autoload.php');
         if (!class_exists('\WebService\Servientrega'))
-            require_once ($this->lib_path . 'servientrega-webservice-php/src/WebService.php');
+            require_once ($this->lib_path . 'vendor/autoload.php');
         require_once ($this->includes_path . 'class-method-shipping-servientrega-wc.php');
         require_once ($this->includes_path . 'class-shipping-servientrega-wc.php');
     
         add_filter( 'plugin_action_links_' . plugin_basename( $this->file), array( $this, 'plugin_action_links' ) );
         add_filter( 'woocommerce_shipping_methods', array( $this, 'shipping_servientrega_wc_add_method') );
-        add_filter( 'woocommerce_billing_fields', array($this, 'custom_woocommerce_billing_fields'));
+        add_filter( 'woocommerce_checkout_fields', array($this, 'custom_woocommerce_fields'));
         add_filter( 'manage_edit-shop_order_columns', array($this, 'print_guide'), 20 );
         add_action( 'woocommerce_order_status_changed', array('Shipping_Servientrega_WC', 'generate_guide'), 20, 4 );
-        add_action( 'woocommerce_process_product_meta', array($this, 'save_custom_shipping_option_to_products') );
+        add_action( 'woocommerce_process_product_meta', array($this, 'save_custom_shipping_option_to_products'), 10 );
+        add_action( 'woocommerce_save_product_variation', array($this, 'save_variation_settings_fields'), 10, 2 );
         add_action( 'admin_enqueue_scripts', array($this, 'enqueue_scripts_admin') );
-        add_action( 'wp_ajax_servientrega_shipping_matriz', array($this, 'servientrega_shipping_matriz'));
         add_action( 'wp_ajax_servientrega_generate_sticker', array($this, 'servientrega_generate_sticker'));
         add_action( 'manage_shop_order_posts_custom_column', array($this, 'content_column_print_guide'), 2 );
+        add_action( 'woocommerce_order_details_after_order_table', array($this, 'button_get_status_shipping'), 10, 1 );
     }
 
     public function plugin_action_links($links)
     {
         $plugin_links = array();
-        $plugin_links[] = '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=shipping&section=shipping_servientrega_wc') . '">' . 'Configuraciones' . '</a>';
+            $plugin_links[] = '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=shipping&section=shipping_servientrega_wc') . '">' . 'Configuraciones' . '</a>';
         $plugin_links[] = '<a target="_blank" href="https://shop.saulmoralespa.com/shipping-servientrega-woocommerce/">' . 'Documentación' . '</a>';
         return array_merge( $plugin_links, $links );
     }
@@ -133,7 +132,7 @@ class Shipping_Servientrega_WC_Plugin
         global $post;
 
         woocommerce_wp_text_input( [
-            'id'          => '_shipping_custom_price_product_smp',
+            'id'          => '_shipping_custom_price_product_smp[' . $post->ID . ']',
             'label'       => __( 'Valor declarado del producto'),
             'placeholder' => 'Valor declarado del envío',
             'desc_tip'    => true,
@@ -142,11 +141,33 @@ class Shipping_Servientrega_WC_Plugin
         ] );
     }
 
+    public function variation_settings_fields($loop, $variation_data, $variation)
+    {
+        woocommerce_wp_text_input(
+            array(
+                'id'          => '_shipping_custom_price_product_smp[' . $variation->ID . ']',
+                'label'       => __( 'Valor declarado del producto'),
+                'placeholder' => 'Valor declarado del envío',
+                'desc_tip'    => true,
+                'description' => __( 'El valor que desea declarar para el envío'),
+                'value'       => get_post_meta( $variation->ID, '_shipping_custom_price_product_smp', true )
+            )
+        );
+    }
+
     public function save_custom_shipping_option_to_products($post_id)
     {
-        $custom_price_product = sanitize_text_field($_POST['_shipping_custom_price_product_smp']);
+        $custom_price_product = esc_attr($_POST['_shipping_custom_price_product_smp'][ $post_id ]);
         if( isset( $custom_price_product ) )
             update_post_meta( $post_id, '_shipping_custom_price_product_smp', esc_attr( $custom_price_product ) );
+    }
+
+    public function save_variation_settings_fields($post_id)
+    {
+        $custom_variation_price_product = esc_attr($_POST['_shipping_custom_price_product_smp'][ $post_id ]);
+        if( ! empty( $custom_variation_price_product ) ) {
+            update_post_meta( $post_id, '_shipping_custom_price_product_smp', $custom_variation_price_product );
+        }
     }
 
     public static function create_table()
@@ -174,113 +195,27 @@ class Shipping_Servientrega_WC_Plugin
     public function enqueue_scripts_admin($hook)
     {
         if ($hook === 'woocommerce_page_wc-settings' || $hook === 'edit.php'){
-            wp_enqueue_script( 'shipping_servientrega_wc_ss', $this->plugin_url. 'assets/js/config.js', array( 'jquery' ), $this->version, true );
+            wp_enqueue_script( 'shipping_servientrega_wc_ss', $this->plugin_url. 'assets/js/shipping-servientrega-wc.js', array( 'jquery' ), $this->version, true );
             wp_enqueue_script( 'shipping_servientrega_wc_ss_sweet_alert', $this->plugin_url. 'assets/js/sweetalert2.js', array( 'jquery' ), $this->version, true );
         }
     }
 
-    public function servientrega_shipping_matriz()
-    {
-        if ( ! isset( $_POST['servientrega_matriz_excel'] )
-            || ! wp_verify_nonce( $_POST['servientrega_matriz_excel'], 'servientrega_upload_matriz_excel' )
-        )
-            return;
-
-        $fileName = sanitize_text_field($_FILES["servientrega_xls"]["name"]);
-        $fileTmpName = sanitize_text_field($_FILES["servientrega_xls"]["tmp_name"]);
-
-        $supported_type = [
-            'application/excel',
-            'application/vnd.ms-excel',
-            'application/x-excel',
-            'application/x-msexcel'
-        ];
-        $arr_file_type = wp_check_filetype(basename($fileName));
-        $uploaded_type = $arr_file_type['type'];
-
-        if(!in_array($uploaded_type, $supported_type))
-            wp_send_json(
-                [
-                    'status' => false,
-                    'message' => 'Tipo de archivo no aceptado debe ser excel con extensión .xsl'
-                ]
-            );
-
-        $dir = $this->pathUpload();
-        $name = $this->changeName($fileName);
-
-        $pathXLS = $dir . $name;
-
-        $result = [
-            'status' => true
-        ];
-
-        $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
-        $wc_main_settings['shipping_servientrega_matriz'] = true;
-
-        if (!move_uploaded_file($fileTmpName, $pathXLS))
-            wp_send_json($result);
-
-        try{
-            $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
-            $spreadsheet = $reader->load($pathXLS);
-            $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
-            $data = array_shift($rows);
-
-            $keysColumns = $this->columns($data);
-
-            if (empty($keysColumns))
-                wp_send_json(
-                    [
-                        'status' => false,
-                        'message' => 'El excel debe tener las columnas ID_CIUDAD_DESTINO, TIEMPOENTREGA_COMERCIAL, TIPOTRAYECTO, RESTRICCION_FISICA'
-                    ]
-                );
-
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'shipping_servientrega_matriz';
-
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name ){
-                $sql = "DELETE FROM $table_name";
-                $wpdb->query($sql);
-            }
-
-            self::create_table();
-
-            foreach ($rows as $column){
-
-                $wpdb->insert(
-                    $table_name,
-                    [
-                        'id_ciudad_destino' => (int)$column[$keysColumns[0]],
-                        'tiempo_entrega_comercial' => $column[$keysColumns[1]],
-                        'tipo_trayecto' => $this->singleWord($column[$keysColumns[2]]),
-                        'restriccion_fisica' => $this->convertJson($column[$keysColumns[3]])
-                    ]
-                );
-            }
-        }catch (\Exception $exception){
-            $result = [
-                'status' => false,
-                'message' => $exception->getMessage()
-            ];
-            $wc_main_settings['shipping_servientrega_matriz'] = '';
-        }
-
-
-        update_option('woocommerce_servientrega_shipping_settings', $wc_main_settings);
-
-        wp_send_json($result);
-
-    }
-
-    public function custom_woocommerce_billing_fields($fields)
+    public function custom_woocommerce_fields($fields)
     {
         $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
         $num_recaudo = isset($wc_main_settings['servientrega_num_recaudo']) ? $wc_main_settings['servientrega_num_recaudo'] : false;
 
-        if ($num_recaudo && !isset($fields['billing_identificacion'])){
-            $fields['billing_identificacion'] = array(
+        if ($num_recaudo &&
+            !isset($fields['billing']['billing_identificacion']) &&
+            !isset($fields['shipping']['shipping_identificacion'])){
+            $fields['billing']['billing_identificacion'] = array(
+                'label' => __('Número de cédula'),
+                'placeholder' => _x('Su número de cédula....', 'placeholder'),
+                'required' => true,
+                'clear' => false,
+                'type' => 'number'
+            );
+            $fields['shipping']['shipping_identificacion'] = array(
                 'label' => __('Número de cédula'),
                 'placeholder' => _x('Su número de cédula....', 'placeholder'),
                 'required' => true,
@@ -293,78 +228,13 @@ class Shipping_Servientrega_WC_Plugin
 
     }
 
-    public function columns($data)
-    {
-        $columns = [];
-
-        if (!$id_ciudad_destino = array_keys($data, 'ID_CIUDAD_DESTINO'))
-            return [];
-        $columns[] = $id_ciudad_destino[0];
-
-        if (!$tiempo_entrega_comercial = array_keys($data, 'TIEMPOENTREGA_COMERCIAL'))
-            return [];
-        $columns[] = $tiempo_entrega_comercial[0];
-
-        if (!$tipo_trayecto = array_keys($data, 'TIPOTRAYECTO'))
-            return [];
-        $columns[] = $tipo_trayecto[0];
-
-        if (!$restriccion_fisica = array_keys($data, 'RESTRICCION_FISICA'))
-            return [];
-        $columns[] = $restriccion_fisica[0];
-
-        return $columns;
-
-    }
-
-    public function pathUpload()
-    {
-        $upload_dir = wp_upload_dir();
-        return trailingslashit($upload_dir['basedir']);
-    }
-
-    public function changeName($file)
-    {
-        $extension = pathinfo($file, PATHINFO_EXTENSION);
-        $name = "matrix.$extension";
-
-        return $name;
-    }
-
-    public function convertJson($column)
-    {
-        $words= strtolower($column);
-        $words= preg_replace('/\s+/', '', $words);
-        $words= str_replace(['kgs', 'cms'], '|', $words);
-        $words= explode( '|', $words);
-        $words= array_filter($words, 'strlen');
-
-        $data = [];
-
-        foreach( $words as $word ){
-            $tmp = explode( ':', $word );
-            $data[ $tmp[0] ] = $tmp[1];
-        }
-
-        return json_encode($data);
-
-    }
-
-    public function singleWord($column)
-    {
-        $word = strtolower($column);
-        if(strpos($word, ' ') !== false){
-            $word = explode(' ', $word);
-            $word = $word[1];
-        }
-
-        return $word;
-    }
-
     public function print_guide($columns)
     {
+        $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
+        $wc_main_settings['servientrega_license'];
 
-        $columns['generate_sticker'] = 'Generar Sticker Servientrega';
+        if(isset($wc_main_settings['servientrega_license']) && !empty($wc_main_settings['servientrega_license']))
+            $columns['generate_sticker'] = 'Generar Sticker Servientrega';
         return $columns;
     }
 
@@ -374,12 +244,16 @@ class Shipping_Servientrega_WC_Plugin
 
         $order = new WC_Order($post->ID);
 
-        $order_id_origin = $order->get_parent_id() > 0 ? $order->get_parent_id() : $order->get_id();
-
         $guide_servientrega = get_post_meta($order->get_id(), 'guide_servientrega', true);
 
-        if(!empty($guide_servientrega) && $column == 'generate_sticker' ){
+        $upload_dir = wp_upload_dir();
+        $sticker_file = $upload_dir['basedir'] . '/servientrega-stickers/' . "$guide_servientrega.pdf";
+        $sticker_url = $upload_dir['baseurl'] . '/servientrega-stickers/' . "$guide_servientrega.pdf";
+
+        if(!file_exists($sticker_file) && !empty($guide_servientrega) && $column == 'generate_sticker' ){
             echo "<button class='button-secondary generate_sticker' data-guide='".$guide_servientrega."' data-nonce='".wp_create_nonce( "shipping_servientrega_generate_sticker") ."'>Generar stickers</button>";
+        }elseif (file_exists($sticker_file) && !empty($guide_servientrega) && $column == 'generate_sticker'){
+            echo "<a target='_blank' class='button-primary' href='$sticker_url'>Ver Stickers</a>";
         }
     }
 
@@ -408,6 +282,19 @@ class Shipping_Servientrega_WC_Plugin
         if ($sticker_file){
             $guide_number_url = $upload_dir['baseurl'] . '/servientrega-stickers/' . "$guide_number.pdf";
             wp_send_json(['status' => true, 'url' => $guide_number_url]);
+        }
+    }
+
+    public function button_get_status_shipping($order)
+    {
+        $order_id_origin = $order->get_parent_id() > 0 ? $order->get_parent_id() : $order->get_id();
+
+        $number_guide = get_post_meta($order_id_origin, 'guide_servientrega', true);
+
+        if ($number_guide){
+            $tracking_url = "https://www.servientrega.com/wps/portal/Colombia/transacciones-personas/rastreo-envios/detalle?id=$number_guide";
+
+            echo "<p>Código de seguimiento: <a href='$tracking_url' target='_blank'>$number_guide</a></p>";
         }
     }
 }

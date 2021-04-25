@@ -34,7 +34,7 @@ $html = '
     <hr class="wp-header-end">';
 $html .= $this->servientrega_shipping_page_tabs($tab);
 
-if (in_array($tab, $this->nameTabs()))
-    $html .= require_once($this->addTabPerFile($tab));
+if (in_array($tab, $this->name_tabs()))
+    $html .= require_once($this->add_tab_per_file($tab));
 $html .= '</div>';
 echo $html;

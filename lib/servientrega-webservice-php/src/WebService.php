@@ -4,7 +4,6 @@ namespace Servientrega;
 
 class WebService
 {
-    const URL_GUIDES = 'http://web.servientrega.com:8081/GeneracionGuias.asmx?wsdl';
     const URL_TRACKING_DISPATCHES = 'http://sismilenio.servientrega.com.co/wsrastreoenvios/wsrastreoenvios.asmx?wsdl';
     const NAMESPACE_GUIDES = 'http://tempuri.org/';
 
@@ -13,6 +12,7 @@ class WebService
     private $_billing_code;
     private $_id_cient;
     private $_name_pack;
+    private $_url_guides = 'http://web.servientrega.com:8081/GeneracionGuias.asmx?wsdl';
 
     /**
      * WebService constructor.
@@ -45,6 +45,12 @@ class WebService
             'Id_CodFacturacion' => $this->_billing_code,
             'Nombre_Cargue' => $this->_name_pack
         ];
+    }
+
+
+    public function setUrlGuides(String $url):void
+    {
+        $this->_url_guides = $url;
     }
 
     /**
@@ -173,6 +179,7 @@ class WebService
     {
         return [
             "trace" => true,
+            'exceptions' => false,
             "soap_version"  => SOAP_1_2,
             "connection_timeout"=> 60,
             "encoding"=> "utf-8",
@@ -180,7 +187,8 @@ class WebService
                 'ssl' => [
                     'verify_peer' => false,
                     'verify_peer_name' => false,
-                    'allow_self_signed' => true
+                    'allow_self_signed' => true,
+                    'ciphers'=>'AES256-SHA'
                 ]
             ]),
             'cache_wsdl' => WSDL_CACHE_NONE
@@ -200,7 +208,8 @@ class WebService
 
             if (!$tracking) {
                 $headerData = strpos($name_function, 'Contrasena') !== false ? '' : $this->paramsHeader();
-                $client = new \SoapClient(self::URL_GUIDES, $this->optionsSoap());
+                $client = new \SoapClient($this->_url_guides, $this->optionsSoap());
+                $client->__setLocation($this->_url_guides);
                 $header = new \SoapHeader(self::NAMESPACE_GUIDES, 'AuthHeader', $headerData);
                 $client->__setSoapHeaders($header);
             } else {

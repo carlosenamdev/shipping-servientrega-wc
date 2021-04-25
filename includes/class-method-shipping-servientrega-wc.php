@@ -21,7 +21,7 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
 
         $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
 
-        $this->debug = $this->get_option( 'debug' );
+        $this->debug = $wc_main_settings['servientrega_debug'] ?? 'no';
         $this->isTest = isset($wc_main_settings['servientrega_production']) ? $wc_main_settings['servientrega_production'] : false;
         $this->guide_free_shipping = isset($wc_main_settings['servientrega_guide_free_shipping']) ? $wc_main_settings['servientrega_guide_free_shipping'] : false;
         $this->num_recaudo = isset($wc_main_settings['servientrega_num_recaudo']) ? $wc_main_settings['servientrega_num_recaudo'] : false;
@@ -29,7 +29,6 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
         $this->password = isset($wc_main_settings['servientrega_password']) ? $wc_main_settings['servientrega_password'] : '';
         $this->billing_code = isset($wc_main_settings['servientrega_billing_code']) ? $wc_main_settings['servientrega_billing_code'] : '';
         $this->id_client = isset($wc_main_settings['servientrega_id_client']) ? $wc_main_settings['servientrega_id_client'] : '';
-        $this->way_pay = isset($wc_main_settings['servientrega_agreement_pay']) ? $wc_main_settings['servientrega_agreement_pay'] : '';
         $this->address_sender = isset($wc_main_settings['servientrega_address_sender']) ? $wc_main_settings['servientrega_address_sender'] : '';
         $this->servientrega_product_type = isset($wc_main_settings['servientrega_product_type']) ? $wc_main_settings['servientrega_product_type'] : 2;
         $this->rates_servientrega = isset($wc_main_settings['rate']) ? $wc_main_settings['rate'] : [];
@@ -45,17 +44,12 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
     public function is_available($package)
     {
 
-        $db = Shipping_Servientrega_WC::getDataShipping('2');
-
         return parent::is_available($package) &&
             $this->user &&
             $this->password &&
             $this->billing_code &&
             $this->id_client &&
-            $this->way_pay &&
-            $this->address_sender &&
-            !empty($this->rates_servientrega) &&
-            !empty($db);
+            $this->address_sender;
     }
 
     /**
@@ -70,59 +64,47 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
     public function init_form_fields()
     {
         if(isset($_GET['page']) && $_GET['page'] === 'wc-settings')
-            $this->form_fields = include( dirname( __FILE__ ) . '/admin/settings.php' );
+            $this->form_fields = include(dirname(__FILE__) . '/admin/settings.php');
     }
 
-    public function nameTabs()
+    public function name_tabs()
     {
         $servientrega_shipping_tabs = [
           'general',
           'rates',
-          'packing',
-          'licence'
+          'license'
         ];
 
         return apply_filters( 'servientrega_shipping_tabs', $servientrega_shipping_tabs );
     }
 
-    public function addTabPerFile($tab)
+    public function add_tab_per_file($tab)
     {
-       $tab = file_exists(__DIR__ . "/admin/$tab.php") ? __DIR__ . "/admin/$tab.php" : $this->pluginPathExtension($tab);
+       $tab = file_exists(__DIR__ . "/admin/$tab.php") ? __DIR__ . "/admin/$tab.php" : __DIR__ . "/includes/admin/$tab.php";
 
        return $tab;
     }
 
-    public function pluginPathExtension($tab)
-    {
-        $nameClass = get_class($this);
-        $nameClass = strtolower($nameClass);
-        $nameClass = str_replace('_', '-', $nameClass);
-
-        return trailingslashit(WP_PLUGIN_DIR) . trailingslashit($nameClass) . "includes/admin/$tab.php";
-    }
-
     public function generate_servientrega_tab_box_html()
     {
-        include( dirname( __FILE__ ) . '/admin/tabs.php' );
+        include(dirname(__FILE__) . '/admin/tabs.php');
     }
 
     public function servientrega_shipping_page_tabs($current = 'general')
     {
-        $activation_check = get_option('dhl_activation_status');
-        if(!empty($activation_check) && $activation_check === 'active')
-        {
-            $acivated_tab_html =  "<small style='color:green;font-size:xx-small;'>(Activated)</small>";
+        $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
+        $license = $wc_main_settings['servientrega_license'] ?? '';
 
+        if(!empty($license)){
+            $acivated_tab_html =  "<small style='color:green;font-size:xx-small;'>(Activada)</small>";
+
+        }else{
+            $acivated_tab_html =  "<small style='color:red;font-size:xx-small;'>(Activar)</small>";
         }
-        else
-        {
-            $acivated_tab_html =  "<small style='color:red;font-size:xx-small;'>(Activate)</small>";
-        }
+
         $tabs = array(
             'general' => __("General"),
-            'rates' => __("Tiempo de entrega, Liquidación y trayectos"),
-            'packing' => __("Red operativa terrestre"),
-            //'licence' => __("License ".$acivated_tab_html, 'wf-shipping-dhl')
+            'license' => __("Licencia ".$acivated_tab_html)
         );
         $html = '<h2 class="nav-tab-wrapper">';
         foreach ($tabs as $tab => $name) {
@@ -137,13 +119,10 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
 
     public function calculate_shipping($package = [])
     {
-        global $woocommerce;
-
         $country = $package['destination']['country'];
         $state_destination = $package['destination']['state'];
         $city_destination  = $package['destination']['city'];
-        $city_destination = Shipping_Servientrega_WC::clean_string($city_destination);
-        $items = $woocommerce->cart->get_cart();
+        $city_destination  = Shipping_Servientrega_WC::get_city($city_destination);
 
         if($country !== 'CO' || empty($state_destination))
             return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
@@ -154,113 +133,101 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
             return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
 
         $address_destine = "$city_destination - $name_state_destination";
+        $address_destine = Shipping_Servientrega_WC::normalize_string($address_destine);
 
         if ($this->debug === 'yes')
-            shipping_servientrega_wc_ss()->log("origin: $this->address_sender address_destine: $address_destine");
+            shipping_servientrega_wc_ss()->log("address_destine: $address_destine");
 
         $cities = include dirname(__FILE__) . '/cities.php';
 
-        $destine = array_search($address_destine, $cities);
+        $destine = array_search($address_destine, Shipping_Servientrega_WC::clean_cities($cities));
 
         if(!$destine)
             return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
 
-        $matrix_data = Shipping_Servientrega_WC::getDataShipping($destine);
+        $destine = Shipping_Servientrega_WC::format_dane_city_code($destine);
 
-        if (empty($matrix_data))
-            return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
+        $items = $package['contents'];
+        $item = end($items);
+        $product = $item['data'];
+        $seller = Shipping_Servientrega_WC::get_shop($product->get_id());
+
+        if (isset($seller['address']['city']) && !empty($seller['address']['city'])){
+            $city_origin = $seller['address']['city'];
+            $city_origin  = Shipping_Servientrega_WC::get_city($city_origin);
+            $state_origin = $seller['address']['state'];
+            $name_state_origin = Shipping_Servientrega_WC::name_destination($country, $state_origin);
+            $address_origin = "$city_origin - $name_state_origin";
+            $address_origin = Shipping_Servientrega_WC::normalize_string($address_origin);
+            $origin = array_search($address_origin, Shipping_Servientrega_WC::clean_cities($cities));
+            if(!$origin)
+                return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
+            $origin = Shipping_Servientrega_WC::format_dane_city_code($origin);
+        }else{
+            $origin = Shipping_Servientrega_WC::format_dane_city_code($this->address_sender);
+        }
 
         $data_products = Shipping_Servientrega_WC::dimensions_weight($items);
 
-        $physical_restriction = json_decode($matrix_data['restriccion_fisica'], true);
+        if (empty($data_products['name_products']))
+            return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
 
-        if(!empty($physical_restriction))
-            if(!$this->check_restriction($data_products, $physical_restriction)){
-                shipping_servientrega_wc_ss()->log("Error restricción fisica:");
-                shipping_servientrega_wc_ss()->log($data_products);
-                return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
-            }
+        $data = $this->calculate_cost($data_products, $origin, $destine);
+
+        if (empty((array)$data))
+            return apply_filters( 'woocommerce_shipping_' . $this->id . '_is_available', false, $package, $this );
 
         $rate = [
             'id' => $this->id,
             'label' => $this->title,
-            'cost' => $this->calculate_cost($matrix_data, $data_products),
+            'cost' => $data->ValorTotal,
             'package' => $package,
         ];
-
-        $delivery_commercial = (int)$matrix_data['tiempo_entrega_comercial'];
-        $delivery_days = $delivery_commercial > 1 ? "$delivery_commercial días" : "$delivery_commercial día";
-
-        add_filter( 'woocommerce_cart_shipping_method_full_label', function($label) use($delivery_days) {
-
-            $label .= "<br /><small>";
-            $label .= "Estimación de entrega: $delivery_days";
-            $label .= '</small>';
-            return $label;
-        }, 1);
 
         return $this->add_rate( $rate );
 
     }
 
-    public function calculate_cost($matrix_data, $data_products)
+    public function calculate_cost(array $data_products, $origin, $destine)
     {
-        $rates = $this->rates_servientrega;
-        $weight = $rates['weight'];
-        $journey = $matrix_data['tipo_trayecto'];
-        $freight = $rates['freight'];
+        $id_product =  1;
 
-        $total_weight_products = $data_products['weight'];
-
-        $data_weight_key = [];
-
-        foreach ($weight as $key => $value){
-
-            $data_weight_key = [$key];
-
-            $value = (int)$value;
-
-            if(($value === $total_weight_products) || ($value > $total_weight_products)){
-                break;
-            }elseif ($total_weight_products > $value) {
-                $data_weight_key = [$key, $value];
-            }
+        if ($data_products['weight'] == 3){
+            $id_product = 2;
+        }else if ($data_products['weight'] >= 4){
+            $id_product = 6;
         }
 
-        $rate_key_weight = $data_weight_key[0];
+        $params = [
+            'IdProducto'          => $id_product,
+            'NumeroPiezas'        => $id_product === 6 ? count($data_products['pieces']) : 1,
+            'Piezas'              => $id_product === 6 ? $data_products['pieces'] :
+                [
+                    [
+                        'Peso'  => $data_products['weight'],
+                        'Largo' => ceil($data_products['length']),
+                        'Ancho' => ceil($data_products['width']),
+                        'Alto'  => ceil($data_products['high'])
+                    ]
+                ],
+            'ValorDeclarado'      => $data_products['total_valorization'],
+            'IdDaneCiudadOrigen'  => $origin,
+            'IdDaneCiudadDestino' => $destine,
+            'EnvioConCobro'       => $this->num_recaudo,
+            'FormaPago'           => 2,
+            'TiempoEntrega'       => 1,
+            'MedioTransporte'     => 1,
+            'NumRecaudo'          => 1
+        ];
 
-        $journeyCost = (int)$rates[$journey][$rate_key_weight];
+        if ($this->debug === 'yes')
+            shipping_servientrega_wc_ss()->log($params);
 
-        //additionals kilos
-        if (count($data_weight_key) === 2){
-            $weight = $weight[$rate_key_weight];
+        $response = Shipping_Servientrega_WC::liquidation($params);
 
-            $remaining = $total_weight_products - $weight;
+        if ($this->debug === 'yes')
+            shipping_servientrega_wc_ss()->log($response);
 
-            $additionalCost = (int)$rates['additional'][$journey];
-
-            $additionalCost = $additionalCost * $remaining;
-
-            $journeyCost += $additionalCost;
-
-        }
-
-        $journeyCost += $freight;
-
-        return apply_filters( 'servientrega_shipping_calculate_cost', $journeyCost, $matrix_data, $data_products );
-    }
-
-    public function check_restriction($data_products, $physical_restriction)
-    {
-       if ($data_products['length'] > $physical_restriction['largo'])
-           return false;
-       if ($data_products['high'] > $physical_restriction['alto'])
-           return false;
-       if ($data_products['width'] > $physical_restriction['ancho'])
-           return false;
-       if ($data_products['weight'] > $physical_restriction['peso'])
-           return false;
-
-       return true;
+        return apply_filters( 'servientrega_shipping_calculate_cost', $response, $data_products, $origin, $destine );
     }
 }

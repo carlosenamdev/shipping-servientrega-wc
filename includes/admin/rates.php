@@ -69,7 +69,7 @@ $htmlRates = '
                          for ($i = 0; $i < count($general_settings['rate']['weight']); $i++ ){
                              $action = $i > 0 ? '<td class="remove"><span style="font-size:30px;color:red;cursor:pointer;" class="dashicons dashicons-minus"></span></td>'
                                  : '<td class="add"><span style="font-size:30px;color:green;cursor:pointer;" class="dashicons dashicons-plus-alt""></span></td>';
-                             $htmlRates .= '<tr><td><input type="number" name="rate[weight][]" placeholder="3"  min="1" value="' . $general_settings['rate']['weight'][$i].'" size="2"></td>
+                             $htmlRates .= '<tr><td><input type="text" name="rate[weight][]" placeholder="3"  min="1" value="' . $general_settings['rate']['weight'][$i].'" size="2"></td>
                         <td><input type="text" name="rate[nacional][]" class="wc_input_price" placeholder="10850" value="'.$general_settings['rate']['nacional'][$i].'" size="10"></td>
                         <td><input type="text" name="rate[zonal][]" class="wc_input_price" placeholder="7400" value="'.$general_settings['rate']['zonal'][$i].'" size="10"></td>
                         <td><input type="text" name="rate[urbano][]" class="wc_input_price" placeholder="6350" value="'.$general_settings['rate']['urbano'][$i].'" size="10"></td>
@@ -78,7 +78,7 @@ $htmlRates = '
                     </tr>';
                          }
                          else:
-                             $htmlRates .= '<tr><td><input type="number" name="rate[weight][]" placeholder="3"  min="1" value="" size="2" required></td>
+                                 $htmlRates .= '<tr><td><input type="text" name="rate[weight][]" placeholder="3"  min="1" value="" required></td>
                         <td><input type="text" name="rate[nacional][]" class="wc_input_price" placeholder="10850" value="" size="10" required></td>
                         <td><input type="text" name="rate[zonal][]" class="wc_input_price" placeholder="7400" value="" size="10" required></td>
                         <td><input type="text" name="rate[urbano][]" class="wc_input_price" placeholder="6350" value="" size="10" required></td>

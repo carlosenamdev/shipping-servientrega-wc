@@ -29,7 +29,7 @@
             "Complex\\": "classes/src/"
         },
         "files": [
-            "classes/src/functions/abs.php",
+          "classes/src/functions/abs.php",
             "classes/src/functions/acos.php",
             "classes/src/functions/acosh.php",
             "classes/src/functions/acot.php",

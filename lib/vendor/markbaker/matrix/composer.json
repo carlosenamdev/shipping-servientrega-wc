@@ -29,7 +29,7 @@
             "Matrix\\": "classes/src/"
         },
         "files": [
-            "classes/src/functions/adjoint.php",
+          "classes/src/functions/adjoint.php",
             "classes/src/functions/antidiagonal.php",
             "classes/src/functions/cofactors.php",
             "classes/src/functions/determinant.php",

@@ -25,7 +25,7 @@ class FilenameFilter extends FilesystemRegexFilter
 }
 
 
-$srcFolder = __DIR__ . DIRECTORY_SEPARATOR . 'src';
+$srcFolder = __DIR__ . DIRECTORY_SEPARATOR;
 $srcDirectory = new RecursiveDirectoryIterator($srcFolder);
 
 $filteredFileList = new FilenameFilter($srcDirectory, '/(?:php)$/i');

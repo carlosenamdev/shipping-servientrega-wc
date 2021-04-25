@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: Shipping Servientrega Woocommerce
+ * Plugin Name: Shipping Servientrega Woocommerce (Undosxtodo)
  * Description: Shipping Servientrega Woocommerce is available for Colombia
- * Version: 3.0.30
+ * Version: 5.0.17
  * Author: Saul Morales Pacheco
  * Author URI: https://saulmoralespa.com
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
- * WC tested up to: 3.5
- * WC requires at least: 2.6
+ * WC tested up to: 4.8
+ * WC requires at least: 4.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if(!defined('SHIPPING_SERVIENTREGA_WC_SS_VERSION')){
-    define('SHIPPING_SERVIENTREGA_WC_SS_VERSION', '3.0.30');
+    define('SHIPPING_SERVIENTREGA_WC_SS_VERSION', '5.0.17');
 }
 
 add_action( 'plugins_loaded', 'shipping_servientrega_wc_ss_init', 1 );
@@ -33,26 +33,14 @@ function shipping_servientrega_wc_ss_init()
 function shipping_servientrega_wc_ss_notices( $notice ) {
     ?>
     <div class="error notice">
-        <p><?php echo esc_html( $notice ); ?></p>
+        <p><?php echo $notice; ?></p>
     </div>
     <?php
 }
 
 function shipping_servientrega_wc_ss_requirements(){
 
-    if ( version_compare( '7.1.0', PHP_VERSION, '>' ) ) {
-        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
-            add_action(
-                'admin_notices',
-                function() {
-                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce: Requiere la versión de php 7.1 o superior' );
-                }
-            );
-        }
-        return false;
-    }
-
-    $openssl_warning = 'Shipping Servientrega Woocommerce: Requiere la extensión OpenSSL 1.0.1 o superior se encuentre instalada';
+    $openssl_warning = 'Shipping Servientrega Woocommerce requiere la extensión OpenSSL 1.0.1 o superior se encuentre instalada';
 
     if ( ! defined( 'OPENSSL_VERSION_TEXT' ) ) {
         if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
@@ -96,31 +84,7 @@ function shipping_servientrega_wc_ss_requirements(){
             add_action(
                 'admin_notices',
                 function() {
-                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce: Requiere la extensión soap se encuentre instalada' );
-                }
-            );
-        }
-        return false;
-    }
-
-    if ( ! extension_loaded( 'xml' ) ){
-        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
-            add_action(
-                'admin_notices',
-                function() {
-                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce: Requiere la extensión xml se encuentre instalada' );
-                }
-            );
-        }
-        return false;
-    }
-
-    if ( ! extension_loaded( 'simplexml' ) ){
-        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
-            add_action(
-                'admin_notices',
-                function() {
-                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce: Requiere la extensión simplexml se encuentre instalada' );
+                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce requiere la extensión soap se encuentre instalada' );
                 }
             );
         }
@@ -136,12 +100,13 @@ function shipping_servientrega_wc_ss_requirements(){
             add_action(
                 'admin_notices',
                 function() {
-                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce: Requiere que se encuentre instalado y activo el plugin: Woocommerce' );
+                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce requiere que se encuentre instalado y activo el plugin: Woocommerce' );
                 }
             );
         }
         return false;
     }
+
 
     if ( ! in_array(
         'departamentos-y-ciudades-de-colombia-para-woocommerce/departamentos-y-ciudades-de-colombia-para-woocommerce.php',
@@ -152,7 +117,24 @@ function shipping_servientrega_wc_ss_requirements(){
             add_action(
                 'admin_notices',
                 function() {
-                    shipping_servientrega_wc_ss_notices( 'Shipping Servientrega Woocommerce: Requiere que se encuentre instalado y activo el plugin: Departamentos y ciudades de Colombia para Woocommerce' );
+                    $action = 'install-plugin';
+                    $slug = 'departamentos-y-ciudades-de-colombia-para-woocommerce';
+                    $plugin_install_url = wp_nonce_url(
+                        add_query_arg(
+                            array(
+                                'action' => $action,
+                                'plugin' => $slug
+                            ),
+                            admin_url( 'update.php' )
+                        ),
+                        $action.'_'.$slug
+                    );
+                    $plugin = 'Shipping Servientrega Woocommerce requiere que se encuentre instalado y activo el plugin: '  .
+                        sprintf(
+                            '%s',
+                            "<a class='button button-primary' href='$plugin_install_url'>Departamentos y ciudades de Colombia para Woocommerce</a>" );
+
+                    shipping_servientrega_wc_ss_notices( $plugin );
                 }
             );
         }
@@ -167,7 +149,7 @@ function shipping_servientrega_wc_ss_requirements(){
             add_action(
                 'admin_notices',
                 function() {
-                    $country = 'Shipping Servientrega Woocommerce: Requiere que el país donde se encuentra ubicada la tienda sea Colombia '  .
+                    $country = 'Shipping Servientrega Woocommerce requiere que el país donde se encuentra ubicada la tienda sea Colombia '  .
                         sprintf(
                             '%s',
                             '<a href="' . admin_url() .
@@ -178,6 +160,24 @@ function shipping_servientrega_wc_ss_requirements(){
             );
         }
         return false;
+    }
+
+    $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
+    $license = $wc_main_settings['servientrega_license'] ?? '';
+
+    if(empty($license)){
+        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+            add_action(
+                'admin_notices',
+                function() {
+                    $plugin_license = 'Shipping Servientrega Woocommerce requiere una licencia para poder generar guías entre otras funciones: '  .
+                        sprintf(
+                            '%s',
+                            "<a class='button button-primary' target='_blank' href='https://shop.saulmoralespa.com/producto/plugin-shipping-servientrega-woocommerce/'>Obtener licencia</a>" );
+                    shipping_servientrega_wc_ss_notices( $plugin_license );
+                }
+            );
+        }
     }
 
     return true;
@@ -192,4 +192,5 @@ function shipping_servientrega_wc_ss(){
     return $plugin;
 }
 
-add_action( 'woocommerce_product_options_shipping', array('Shipping_Servientrega_WC_Plugin', 'add_custom_shipping_option_to_products'));
+add_action( 'woocommerce_product_after_variable_attributes', array('Shipping_Servientrega_WC_Plugin', 'variation_settings_fields'), 10, 3 );
+add_action( 'woocommerce_product_options_shipping', array('Shipping_Servientrega_WC_Plugin', 'add_custom_shipping_option_to_products'), 10);

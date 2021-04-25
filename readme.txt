@@ -2,10 +2,10 @@
 Contributors: saulmorales
 Donate link: https://shop.saulmoralespa.com/producto/plugin-shipping-servientrega-woocommerce/
 Tags: commerce, e-commerce, commerce, wordpress ecommerce, store, sales, sell, shop, shopping, cart, checkout, configurable, Colombia, servientrega
-Requires at least: 5.0
-Tested up to: 5.3
+Requires at least: 5.3
+Tested up to: 5.6
 Requires PHP: 7.1
-Stable tag: 3.0.30
+Stable tag: 5.0.17
 License: GNU General Public License v3.0
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -13,7 +13,7 @@ servientrega empresa transportadora de Colombia
 
 == Description ==
 
-Integración de Servientrega como método de envío para woocommerce podrá usar los servicios: cotización, generacion de guias
+Integración de Servientrega como método de envío para Woocommerce. Actualmente esta versión solo permite calcular el costo de envío. [versión completa](https://shop.saulmoralespa.com/producto/plugin-shipping-servientrega-woocommerce/)
 
 == Installation ==
 
@@ -25,40 +25,27 @@ Integración de Servientrega como método de envío para woocommerce podrá usar
 6. Establezca los detalles del envío del producto, ver captura de pantalla.
 
 
-[youtube https://www.youtube.com/watch?v=l04z0McvRqs]
+[youtube https://www.youtube.com/watch?v=C7TGwU14gOo]
 
 
 == Frequently Asked Questions ==
 
 = ¿ Como tener el servcio de Servientrega ? =
 
-Debe solicitar el servicio desde el portal de Servientrega [ver más al detalle](https://www.servientrega.com/wps/portal/Colombia/personas/soluciones/mercancias)
+Debe solicitar el servicio desde el portal de Servientrega [ver más al detalle](https://www.servientrega.com/wps/portal/Colombia/personas/soluciones/mercancias).
+* Si la tienda se encuentra en ciudades principales, escríbame tal vez yo le pueda facilitar el contacto con servientrega.
 
 = ¿ Funciona para enviós internacionales ? =
 
 Actualmente solamente Colombia, no se descarta que en el futuro con la demanda se implemente
 
-= SOAP-ERROR: Parsing WSDL: Couldn’t load =
-
-Si tiene el siguiente error al validar las credenciales o guardar cambios:
-SOAP-ERROR: Parsing WSDL: Couldn’t load from ‘http://web.servientrega.com:8081/GeneracionGuias.asmx?wsdl’ :
-failed to load external entity “http://web.servientrega.com:8081/GeneracionGuias.asmx?wsdl”
-Contacte con su proveedor de alojamiento web y solicite que abran el puerto 8081 y
-aclare que va realizar solicitudes a esta url http://web.servientrega.com:8081/GeneracionGuias.asmx?wsdl
-
-= ¿ Algo más que no me hayas dicho ? =
-
-La versión actual esta limitada y requiere uso de licencia, [versión completa](https://shop.saulmoralespa.com/producto/plugin-shipping-servientrega-woocommerce/)
-
 == Screenshots ==
 
 1. Configuración general screenshot-1.png
-2. Configuración liquidación y costos de trayectos screenshot-2.png
-3. Subir archivo excel de red operativa screenshot-3.png
-4. Añadir método de envío Servientrega en zonas de envíos screenshot-4.png
-5. Configurar producto con dimensiones, peros y opcional valor declarador del producto screenshot-5.png
-6. Cotización costo del envío en funcion screenshot-6.png
-7. Generar stickers de la guía screenshot-7.png
+2. Añadir método de envío Servientrega en zonas de envíos screenshot-2.png
+3. Configurar producto con dimensiones, peso y opcional valor declarado del producto screenshot-3.png
+4. Cotización costo del envío en funcion screenshot-4.png
+5. Generar stickers de la guía screenshot-5.png
 
 == Changelog ==
 
@@ -138,6 +125,86 @@ La versión actual esta limitada y requiere uso de licencia, [versión completa]
 * Updated clean city
 = 3.0.30 =
 * Added generate stickers
+= 4.0.0 =
+* Updated license required
+= 4.0.1 =
+* Fixed clean city
+= 4.0.2 =
+* Fixed generate guide with city Bogotá D.C
+= 4.0.3 =
+* Updated install plugin departamentos-y-ciudades-de-colombia-para-woocommerce
+= 4.0.4 =
+* updated solution port 8081 closed
+= 4.0.5 =
+* Added notice require license
+= 4.0.6 =
+* Updated apply_filter servientrega_shipping_calculate_cost
+= 4.0.7 =
+* Updated wp compatible version
+= 4.0.8 =
+* Added WC_Logger
+= 4.0.9 =
+* Refactor test generate guide
+= 4.0.10 =
+* Updated allow decimals weight
+= 4.0.11 =
+* Added option debug
+= 4.0.12 =
+* compatibility with version 5.5  of wordpress and added apply_filter shipping_servientrega_get_shop
+= 4.0.13 =
+* Fixed closed port 8081
+= 4.0.14 =
+* Added wc_format_decimal()
+= 4.0.15 =
+* compatibility with version 4.4 of Woocommerce
+= 4.0.16 =
+* Added set_location SOAP and button "Ver Stickers"
+= 4.0.17 =
+* Updated readme
+= 4.0.18 =
+* Added tracking in detail order – My account
+= 4.0.19 =
+* Fixed variations
+= 4.0.20 =
+* Refactor identificacion custom field
+= 4.0.21 =
+* Refactor generate_stickers
+= 5.0.0 =
+* Updated calculate shipping
+= 5.0.1 =
+* Fixed ssl calculate shipping
+= 5.0.2 =
+* Fixed special characters of cities
+= 5.0.3 =
+* Fixed saved origin city and refactor shipping_servientrega_get_shop
+= 5.0.4 =
+* Fixed default marketplace dokan shipping_servientrega_get_shop
+= 5.0.5 =
+* Fixed apply_filter servientrega_shipping_calculate_cost
+= 5.0.6 =
+* Fixed servientrega_product_type in calculate_cost
+= 5.0.7 =
+* Fixed servientrega_product_type in calculate_cost
+= 5.0.8 =
+* Fixed ceil dimensions and updated readme version wordpress
+= 5.0.9 =
+* Fixed function dimensions_weight
+= 5.0.10 =
+* Fixed settings
+= 5.0.11 =
+* Fixed generate guide
+= 5.0.12 =
+* Refactor config.js
+= 5.0.13 =
+* Updated settings
+= 5.0.14 =
+* Updated settings
+= 5.0.15 =
+* Fixed calculate_cost
+= 5.0.16 =
+* Fixed name_destination, content_column_print_guide
+= 5.0.17 =
+* Fixed calculate_cost
 
 == Additional Info ==
 **Contribute** [repository on github](https://github.com/saulmoralespa/shipping-servientrega-wc)
