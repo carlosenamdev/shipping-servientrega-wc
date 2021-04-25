@@ -30,6 +30,9 @@ function save_configuration()
     $wc_main_settings['servientrega_user'] = (isset($_POST['servientrega_user'])) ? sanitize_text_field($_POST['servientrega_user']) : 'testajagroup';
     $wc_main_settings['servientrega_password'] = (isset($_POST['servientrega_password'])) ? sanitize_text_field($_POST['servientrega_password']) : 'Colombia1';
     $wc_main_settings['servientrega_billing_code'] = (isset($_POST['servientrega_billing_code'])) ? sanitize_text_field($_POST['servientrega_billing_code']) : 'Cargue SMP';
+
+    $wc_main_settings['servientrega_billing_code_upon_delivery'] = (isset($_POST['servientrega_billing_code_upon_delivery'])) ? sanitize_text_field($_POST['servientrega_billing_code_upon_delivery']) : 'Cargue SMP Contra Entrega';
+
     $wc_main_settings['servientrega_id_client'] = (isset($_POST['servientrega_id_client'])) ? sanitize_text_field($_POST['servientrega_id_client']) : '900917801';
     $wc_main_settings['servientrega_address_sender'] = (isset($_POST['servientrega_address_sender'])) ? sanitize_text_field($_POST['servientrega_address_sender']) : '';
     $wc_main_settings['servientrega_product_type'] = (isset($_POST['servientrega_product_type'])) ? sanitize_text_field($_POST['servientrega_product_type']) : '';
@@ -41,7 +44,7 @@ function save_configuration()
 
 function servientrega_validate_credentials($wc_main_settings){
 
-    if(strpos($wc_main_settings['servientrega_billing_code'], 'SER') === false){
+    if(strpos($wc_main_settings['servientrega_billing_code_upon_delivery'], 'SER') || strpos($wc_main_settings['servientrega_billing_code'], 'SER') === false){
         update_option('servientrega_validation_error','<small style="color:red">Revise que este ingresando el Código de facturación correctamente</small>');
         $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
         $wc_main_settings['servientrega_billing_code'] = '';

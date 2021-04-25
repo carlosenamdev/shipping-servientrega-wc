@@ -9,7 +9,20 @@ class Shipping_Servientrega_WC extends WC_Shipping_Method_Shipping_Servientrega_
     public function __construct($instance_id = 0)
     {
         parent::__construct($instance_id);
-        $this->servientrega = new WebService($this->user, $this->password, $this->billing_code, $this->id_client, get_bloginfo('name'));
+
+        $billing_code = $this->billing_code;
+
+        $payment_method = empty( $_POST['payment_method'] ) ? '' : $_POST['payment_method'];
+
+        if ( class_exists( 'WC_Gateway_COD' ) ) {
+            $cod = new WC_Gateway_COD();
+
+            if ( $payment_method === $cod->id ) {
+                $billing_code = $this->billing_code_upon_delivery;
+            }
+        }
+
+        $this->servientrega = new WebService($this->user, $this->password, $billing_code, $this->id_client, get_bloginfo('name'));
     }
 
     public static function liquidation(array $params)
