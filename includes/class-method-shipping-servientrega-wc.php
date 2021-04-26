@@ -199,6 +199,8 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
             $id_product = 6;
         }
 
+        $recaudo = ! empty( $_POST['payment_method'] ) && 'cod' === $_POST['payment_method'] ? true : false;
+
         $params = [
             'IdProducto'          => $id_product,
             'NumeroPiezas'        => $id_product === 6 ? count($data_products['pieces']) : 1,
@@ -214,7 +216,7 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
             'ValorDeclarado'      => $data_products['total_valorization'],
             'IdDaneCiudadOrigen'  => $origin,
             'IdDaneCiudadDestino' => $destine,
-            'EnvioConCobro'       => $this->num_recaudo,
+            'EnvioConCobro'       => $recaudo,
             'FormaPago'           => 2,
             'TiempoEntrega'       => 1,
             'MedioTransporte'     => 1,
