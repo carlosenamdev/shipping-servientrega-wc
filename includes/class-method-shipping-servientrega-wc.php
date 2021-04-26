@@ -26,6 +26,7 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
         $this->guide_free_shipping = isset($wc_main_settings['servientrega_guide_free_shipping']) ? $wc_main_settings['servientrega_guide_free_shipping'] : false;
         $this->num_recaudo = isset($wc_main_settings['servientrega_num_recaudo']) ? $wc_main_settings['servientrega_num_recaudo'] : false;
         $this->user = isset($wc_main_settings['servientrega_user']) ? $wc_main_settings['servientrega_user'] : '';
+        $this->user_cod = isset($wc_main_settings['servientrega_user_cod']) ? $wc_main_settings['servientrega_user_cod'] : '';
         $this->password = isset($wc_main_settings['servientrega_password']) ? $wc_main_settings['servientrega_password'] : '';
         $this->billing_code = isset($wc_main_settings['servientrega_billing_code']) ? $wc_main_settings['servientrega_billing_code'] : '';
         $this->billing_code_upon_delivery = isset($wc_main_settings['servientrega_billing_code_upon_delivery']) ? $wc_main_settings['servientrega_billing_code_upon_delivery'] : '';
@@ -199,7 +200,7 @@ class WC_Shipping_Method_Shipping_Servientrega_WC extends WC_Shipping_Method
             $id_product = 6;
         }
 
-        $recaudo = ! empty( $_POST['payment_method'] ) && 'cod' === $_POST['payment_method'] ? true : false;
+        $recaudo = ! empty( $_POST['payment_method'] ) && 'cod' === $_POST['payment_method'] ? 1 : false;
 
         $params = [
             'IdProducto'          => $id_product,

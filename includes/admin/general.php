@@ -28,6 +28,7 @@ function save_configuration()
     $wc_main_settings['servientrega_guide_free_shipping'] = $guide_free_shipping;
     $wc_main_settings['servientrega_num_recaudo'] = $num_recaudo;
     $wc_main_settings['servientrega_user'] = (isset($_POST['servientrega_user'])) ? sanitize_text_field($_POST['servientrega_user']) : 'testajagroup';
+    $wc_main_settings['servientrega_user_cod'] = (isset($_POST['servientrega_user_cod'])) ? sanitize_text_field($_POST['servientrega_user_cod']) : 'testajagroup';
     $wc_main_settings['servientrega_password'] = (isset($_POST['servientrega_password'])) ? sanitize_text_field($_POST['servientrega_password']) : 'Colombia1';
     $wc_main_settings['servientrega_billing_code'] = (isset($_POST['servientrega_billing_code'])) ? sanitize_text_field($_POST['servientrega_billing_code']) : 'Cargue SMP';
 
@@ -235,6 +236,14 @@ $htmlGeneral .= '
                 $value = (isset($general_settings['servientrega_user'])) ? $general_settings['servientrega_user'] : 'testajagroup';
                 $htmlGeneral .= "$value\" ";
                 $htmlGeneral .= 'placeholder="testajagroup"> <label for="servientrega_user">' . __('Usuario') . '</label> <span class="woocommerce-help-tip" data-tip="' . __('El usario con el que ingresa al SISCLINET') . '"></span>
+            </fieldset>';
+            $htmlGeneral .= '<fieldset style="padding:3px;">
+                <input class="input-text regular-input" required type="text" name="servientrega_user_cod" id="servientrega_user_cod" ';
+                $disable = ($validation === 'done') ? 'disabled="true" ' : ' ';
+                $htmlGeneral .= $disable; $htmlGeneral .= 'value="';
+                $value = (isset($general_settings['servientrega_user_cod'])) ? $general_settings['servientrega_user_cod'] : 'testajagroup';
+                $htmlGeneral .= "$value\" ";
+                $htmlGeneral .= 'placeholder="testajagroup"> <label for="servientrega_user_cod">' . __('Usuario') . '</label> <span class="woocommerce-help-tip" data-tip="' . __('El usario con el que ingresa al SISCLINET') . '"></span>
             </fieldset>';
             $htmlGeneral .= '<fieldset style="padding:3px;">
                 <input class="input-text regular-input" required type="password" name="servientrega_password" id="servientrega_password" ';

@@ -11,6 +11,7 @@ class Shipping_Servientrega_WC extends WC_Shipping_Method_Shipping_Servientrega_
         parent::__construct($instance_id);
 
         $billing_code = $this->billing_code;
+        $user = $this->user;
 
         $payment_method = empty( $_POST['payment_method'] ) ? '' : $_POST['payment_method'];
 
@@ -19,10 +20,11 @@ class Shipping_Servientrega_WC extends WC_Shipping_Method_Shipping_Servientrega_
 
             if ( $payment_method === $cod->id ) {
                 $billing_code = $this->billing_code_upon_delivery;
+                $user = $this->user_cod;
             }
         }
 
-        $this->servientrega = new WebService($this->user, $this->password, $billing_code, $this->id_client, get_bloginfo('name'));
+        $this->servientrega = new WebService($user, $this->password, $billing_code, $this->id_client, get_bloginfo('name'));
     }
 
     public static function liquidation(array $params)
