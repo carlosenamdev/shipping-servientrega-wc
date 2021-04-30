@@ -94,7 +94,7 @@ class Shipping_Servientrega_WC_Plugin
     
         add_filter( 'plugin_action_links_' . plugin_basename( $this->file), array( $this, 'plugin_action_links' ) );
         add_filter( 'woocommerce_shipping_methods', array( $this, 'shipping_servientrega_wc_add_method') );
-        //add_filter( 'woocommerce_checkout_fields', array($this, 'custom_woocommerce_fields'));
+        add_filter( 'woocommerce_checkout_fields', array($this, 'custom_woocommerce_fields'));
         add_filter( 'manage_edit-shop_order_columns', array($this, 'print_guide'), 20 );
         add_action( 'woocommerce_order_status_changed', array('Shipping_Servientrega_WC', 'generate_guide'), 20, 4 );
         add_action( 'woocommerce_process_product_meta', array($this, 'save_custom_shipping_option_to_products'), 10 );
@@ -202,11 +202,7 @@ class Shipping_Servientrega_WC_Plugin
 
     public function custom_woocommerce_fields($fields)
     {
-        $wc_main_settings = get_option('woocommerce_servientrega_shipping_settings');
-        $num_recaudo = isset($wc_main_settings['servientrega_num_recaudo']) ? $wc_main_settings['servientrega_num_recaudo'] : false;
-
-        if ($num_recaudo &&
-            !isset($fields['billing']['billing_identificacion']) &&
+        if (!isset($fields['billing']['billing_identificacion']) &&
             !isset($fields['shipping']['shipping_identificacion'])){
             $fields['billing']['billing_identificacion'] = array(
                 'label' => __('Número de cédula'),

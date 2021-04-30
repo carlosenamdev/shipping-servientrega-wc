@@ -208,10 +208,6 @@ class Shipping_Servientrega_WC extends WC_Shipping_Method_Shipping_Servientrega_
             $params['Num_Recaudo'] = wc_format_decimal($order->get_total(), 0);
             $params['Tipo_Doc_Destinatario'] = 'CC';
             $params['Ide_Num_Identific_Dest'] = get_post_meta( $order_id_origin, '_billing_identificacion', true )  ? get_post_meta( $order_id_origin, '_billing_identificacion', true )  : get_post_meta( $order_id_origin, '_shipping_identificacion', true );
-
-            $cedula = ! empty( $_POST['billing_identificacion'] ) ? $_POST['billing_identificacion'] : false;
-
-            $params['Ide_Num_Identific_Dest'] = $cedula;
         }
 
         $resp = new stdClass;
