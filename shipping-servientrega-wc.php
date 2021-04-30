@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Shipping Servientrega Woocommerce (Undosxtodo)
  * Description: Shipping Servientrega Woocommerce is available for Colombia
- * Version: 5.0.18
+ * Version: 5.0.19
  * Author: Saul Morales Pacheco
  * Author URI: https://saulmoralespa.com
  * License: GNU General Public License v3.0
