@@ -21,6 +21,7 @@ class Shipping_Servientrega_WC extends WC_Shipping_Method_Shipping_Servientrega_
             if ( $payment_method === $cod->id ) {
                 $billing_code = $this->billing_code_upon_delivery;
                 $user = $this->user_cod;
+                $this->num_recaudo = true;
             }
         }
 

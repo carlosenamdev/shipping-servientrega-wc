@@ -243,7 +243,7 @@ $htmlGeneral .= '
                 $htmlGeneral .= $disable; $htmlGeneral .= 'value="';
                 $value = (isset($general_settings['servientrega_user_cod'])) ? $general_settings['servientrega_user_cod'] : 'testajagroup';
                 $htmlGeneral .= "$value\" ";
-                $htmlGeneral .= 'placeholder="testajagroup"> <label for="servientrega_user_cod">' . __('Usuario') . '</label> <span class="woocommerce-help-tip" data-tip="' . __('El usario con el que ingresa al SISCLINET') . '"></span>
+                $htmlGeneral .= 'placeholder="testajagroup"> <label for="servientrega_user_cod">' . __('Usuario (Contra Entrega)') . '</label> <span class="woocommerce-help-tip" data-tip="' . __('El usario con el que ingresa al SISCLINET') . '"></span>
             </fieldset>';
             $htmlGeneral .= '<fieldset style="padding:3px;">
                 <input class="input-text regular-input" required type="password" name="servientrega_password" id="servientrega_password" ';
